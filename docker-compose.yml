@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "8001:8000"
+    depends_on:
+      - user-db
+
+  user-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+
+  booking-service:
+    build: ./booking-service
+    ports:
+      - "8002:8000"
+    depends_on:
+      - booking-db
+
+  booking-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: password
