@@ -1,6 +1,6 @@
 type Booking {
-  id: ID!
-  vehicleId: String!
+  id: ID
+  vehicleId: Int!
   bookingDate: String!
   status: String!
 }
@@ -10,5 +10,5 @@ type Query {
 }
 
 type Mutation {
-  createBooking(vehicleId: String!, date: String!): Booking
+  createBooking(vehicleId: Int!, date: String!): Booking
 }

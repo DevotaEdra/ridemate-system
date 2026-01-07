@@ -32,20 +32,74 @@ async def resolve_create_booking(_, info, vehicleId, date):
         raise Exception("Authorization header missing")
 
     token = auth.replace("Bearer ", "")
-    user = await validate_token(token)
-
-    available = await check_availability(vehicleId)
-    if not available:
-        raise Exception("Vehicle not available")
+    
+    # 1. Validasi User
+    try:
+        user = await validate_token(token)
+    except:
+        raise Exception("Authentication Failed")
 
     db = SessionLocal()
-    booking = Booking(
-        user_id=int(user["userId"]),
-        vehicle_id=vehicleId,
-        booking_date=date
-    )
-    db.add(booking)
-    db.commit()
-    db.refresh(booking)
+    try:
+        v_id_int = int(vehicleId)
 
-    return booking
+        # ---------------------------------------------------------
+        # 2. CEK DATABASE LOKAL (LOGIKA TANGGAL)
+        # Karena External Service tidak peduli tanggal, kitalah yang 
+        # harus menjaga agar tanggal ini tidak double booking.
+        # ---------------------------------------------------------
+        # ---------------------------------------------------
+        # 2. CEK DATABASE LOKAL (LOGIKA SOFT FAIL)
+        # ---------------------------------------------------
+        existing_booking = db.query(Booking).filter(
+            Booking.vehicle_id == v_id_int,
+            Booking.booking_date == date
+        ).first()
+
+        if existing_booking:
+            print(f"⚠️ Booking Ditolak: Tanggal {date} sudah terisi.")
+            
+            # --- REVISI DISINI ---
+            return {
+                "id": None,   # <--- Gunakan None (Python) -> null (GraphQL)
+                "userId": int(user["userId"]),
+                "vehicleId": v_id_int,
+                "bookingDate": date,
+                "status": f"GAGAL: Mobil sudah dibooking pada tanggal {date}"
+            }
+
+        # ---------------------------------------------------
+        # 3. CEK EXTERNAL
+        # ---------------------------------------------------
+        is_active = await check_availability(vehicleId)
+        
+        if not is_active:
+            # Return Gagal juga kalau mobil rusak
+            return {
+                "id": None,   # <--- Gunakan None
+                "userId": int(user["userId"]),
+                "vehicleId": v_id_int,
+                "bookingDate": date,
+                "status": "GAGAL: Mobil sedang tidak aktif/rusak (Cek Vehicle Service)"
+            }
+        # ---------------------------------------------------------
+        # 4. SIMPAN (CREATE BOOKING)
+        # Tanggal yang diinput user disimpan disini
+        # ---------------------------------------------------------
+        booking = Booking(
+            user_id=int(user["userId"]),
+            vehicle_id=v_id_int,
+            booking_date=date,   # <--- Tanggal disimpan disini
+            status="CONFIRMED"
+        )
+        db.add(booking)
+        db.commit()
+        db.refresh(booking)
+
+        return booking
+
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()

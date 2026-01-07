@@ -6,6 +6,6 @@ class Booking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)
-    vehicle_id = Column(String, nullable=False)
+    vehicle_id = Column(Integer, nullable=False)
     booking_date = Column(String, nullable=False)
     status = Column(String, default="CONFIRMED")
