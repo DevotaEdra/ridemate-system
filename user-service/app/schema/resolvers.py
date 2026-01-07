@@ -6,11 +6,12 @@ from app.utils.jwt import create_token, SECRET_KEY, ALGORITHM
 from app.models import User
 from werkzeug.security import generate_password_hash
 import jwt
+import os 
 
 query = QueryType()
 mutation = MutationType()
 
-
+EXTERNAL_URL = os.getenv("EXTERNAL_USER_SERVICE_URL")
 # ======================
 # MUTATIONS
 # ======================

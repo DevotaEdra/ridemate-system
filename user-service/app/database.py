@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import OperationalError
 
-DATABASE_URL = "postgresql://user:password@user-db:5432/user_db"
+DATABASE_URL = "postgresql://user:password@user-db:5432/db_user"
 
 engine = None
 

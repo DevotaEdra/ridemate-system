@@ -4,3 +4,4 @@ ariadne
 sqlalchemy
 psycopg2-binary
 httpx
+flask
