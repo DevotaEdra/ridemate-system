@@ -2,29 +2,62 @@ version: "3.8"
 
 services:
   user-service:
-    build: ./user-service
+    build: ./user_service
+    container_name: ridemate_user_service
     ports:
-      - "8001:8000"
+      - "4000:8000"
+    environment:
+      SECRET_KEY: "SECRET_USER"
+      DATABASE_URL: postgresql://user:password@user-db/db_user
+      EXTERNAL_USER_SERVICE_URL: "https://abcd1234.ngrok.app"
     depends_on:
       - user-db
+    networks:
+      - ridemate-net
+
+  booking-service:
+    build: ./booking_service
+    container_name: ridemate_booking_service
+    ports:
+      - "4001:8000"
+    environment:
+      DATABASE_URL: postgresql://user:password@booking-db/db_booking
+      SECRET_KEY: "SECRET_BOOKING"
+      USER_SERVICE_URL: "http://user-service:8000"
+    depends_on:
+      - booking-db
+      - user-service
+    networks:
+      - ridemate-net
 
   user-db:
     image: postgres:15
+    container_name: ridemate_user_db
     environment:
-      POSTGRES_DB: user_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-
-  booking-service:
-    build: ./booking-service
-    ports:
-      - "8002:8000"
-    depends_on:
-      - booking-db
+      POSTGRES_DB: db_user
+    volumes:
+      - user_data:/var/lib/postgresql/data
+    networks:
+      - ridemate-net
 
   booking-db:
     image: postgres:15
+    container_name: ridemate_booking_db
     environment:
-      POSTGRES_DB: booking_db
-      POSTGRES_USER: booking
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+      POSTGRES_DB: db_booking
+    volumes:
+      - booking_data:/var/lib/postgresql/data
+    networks:
+      - ridemate-net
+
+networks:
+  ridemate-net:
+    driver: bridge
+
+volumes:
+  user_data:
+  booking_data:

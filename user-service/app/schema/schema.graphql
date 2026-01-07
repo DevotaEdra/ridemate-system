@@ -13,15 +13,6 @@ type Token {
   accessToken: String!
 }
 
-type Query {
-  me: User
-  checkUserReputation(userId: ID!): Reputation
-}
-
-type Mutation {
-  login(email: String!, password: String!): Token
-}
-
 type AuthPayload {
   userId: ID!
   email: String!
@@ -32,4 +23,9 @@ type Query {
   me: User
   checkUserReputation(userId: ID!): Reputation
   validateToken(token: String!): AuthPayload
+}
+
+type Mutation {
+  register(email: String!, password: String!): User
+  login(email: String!, password: String!): Token
 }
