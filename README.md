@@ -148,6 +148,7 @@ Beberapa skenario pengujian utama:
 ## 👥 Tim Pengembang
 
 * **Devota Edra Athaloma (102022300344)**
+
   Service: User Service
 
 * **Yudistira Sebastian Saftari (102022300313)**
