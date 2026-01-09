@@ -23,21 +23,38 @@ Setiap service memiliki database terpisah dan dijalankan dalam container Docker 
 
 ## 📦 Struktur Folder
 
-```
-ride-mate-system/
-│
-├── user-service/
-│   ├── app/
-│   ├── schema.graphql
-│   ├── Dockerfile
-│   └── requirements.txt
+```ridemate-system/
 │
 ├── booking-service/
-│   ├── app/
-│   ├── fleet_client/
-│   ├── schema.graphql
-│   ├── Dockerfile
-│   └── requirements.txt
+│ ├── app/
+│ │ ├── schema/
+│ │ │ ├── __init__.py
+│ │ │ ├── resolvers.py
+│ │ │ └── schema.graphql
+│ │ ├── __init__.py
+│ │ ├── database.py
+│ │ ├── fleet_client.py
+│ │ ├── user_client.py
+│ │ ├── main.py
+│ │ └── models.py
+│ ├── Dockerfile
+│ └── requirements.txt
+│
+├── user-service/
+│ ├── app/
+│ │ ├── schema/
+│ │ │ ├── __init__.py
+│ │ │ ├── resolvers.py
+│ │ │ └── schema.graphql
+│ │ ├── utils/
+│ │ │ ├── __init__.py
+│ │ │ └── jwt.py
+│ │ ├── auth.py
+│ │ ├── database.py
+│ │ ├── main.py
+│ │ └── models.py
+│ ├── Dockerfile
+│ └── requirements.txt
 │
 ├── docker-compose.yml
 └── README.md
@@ -130,11 +147,9 @@ Beberapa skenario pengujian utama:
 ## 👥 Tim Pengembang
 
 * **Devota Edra Athaloma (102022300344)**
-  Role: User & Identity Engineer
   Service: User Service
 
 * **Yudistira Sebastian Saftari (102022300313)**
-  Role: Booking & Orchestration Engineer
   Service: Booking Service
 
 ---
