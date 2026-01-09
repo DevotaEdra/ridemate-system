@@ -12,15 +12,12 @@ query = QueryType()
 mutation = MutationType()
 
 EXTERNAL_URL = os.getenv("EXTERNAL_USER_SERVICE_URL")
-# ======================
-# MUTATIONS
-# ======================
+
 
 @mutation.field("register")
 def resolve_register(_, info, email, password):
     db: Session = SessionLocal()
 
-    # cek user sudah ada
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         raise Exception("User already exists")
@@ -52,14 +49,30 @@ def resolve_login(_, info, email, password):
     }
 
 
-# ======================
-# QUERIES
-# ======================
 
 @query.field("checkUserReputation")
 def resolve_reputation(_, info, userId):
     db: Session = SessionLocal()
     user = db.query(User).get(int(userId))
+
+    return {
+        "score": user.reputation_score,
+        "isBlacklisted": user.blacklisted
+    }
+
+@mutation.field("editUserReputation")
+def resolve_edit_reputation(_, info, userId, score, isBlacklisted):
+    db: Session = SessionLocal()
+    user = db.query(User).get(int(userId))
+
+    if not user:
+        raise Exception("User not found")
+
+    user.reputation_score = score
+    user.blacklisted = isBlacklisted
+
+    db.commit()
+    db.refresh(user)
 
     return {
         "score": user.reputation_score,

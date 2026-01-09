@@ -1,9 +1,7 @@
 version: "3.8"
 
 services:
-  # ==============================
-  # USER SERVICE (Milik Sendiri)
-  # ==============================
+
   user-service:
     build: ./user-service
     container_name: ridemate_user_service
@@ -17,9 +15,7 @@ services:
     networks:
       - ridemate-net
 
-  # ==============================
-  # BOOKING SERVICE (Milik Sendiri)
-  # ==============================
+
   booking-service:
     build: ./booking-service
     container_name: ridemate_booking_service
@@ -29,12 +25,11 @@ services:
       DATABASE_URL: postgresql://user:password@booking-db/db_booking
       SECRET_KEY: "SECRET_BOOKING"
       
-      # 1. URL ke User Service LOKAL (Internal Docker)
-      # Gunakan port 8000 karena komunikasi antar container tidak lewat port mapping host (4000)
+
       USER_SERVICE_URL: "http://user-service:8000/graphql"
       
-      # 2. URL ke Vehicle Service KELOMPOK LAIN (Eksternal)
-      VEHICLE_SERVICE_URL: "https://kenzie-isauxetic-uncruelly.ngrok-free.dev/graphql"
+
+      VEHICLE_SERVICE_URL: "https://kenzie-isauxetic-uncruelly.ngrok-free.dev/availability/graphql/"
       EXTERNAL_LOGIN_USERNAME: "admin"
       EXTERNAL_LOGIN_PASSWORD: "admin123"
     depends_on:
@@ -43,7 +38,7 @@ services:
     networks:
       - ridemate-net
 
-  # ... (Database services tetap sama)
+
   user-db:
     image: postgres:15
     container_name: ridemate_user_db
