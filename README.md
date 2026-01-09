@@ -152,7 +152,8 @@ Beberapa skenario pengujian utama:
   Service: User Service
 
 * **Yudistira Sebastian Saftari (102022300313)**
-  Service: Booking Service
+
+   Service: Booking Service
 
 ---
 
