@@ -23,7 +23,8 @@ Setiap service memiliki database terpisah dan dijalankan dalam container Docker 
 
 ## 📦 Struktur Folder
 
-```ridemate-system/
+```
+ridemate-system/
 │
 ├── booking-service/
 │ ├── app/
