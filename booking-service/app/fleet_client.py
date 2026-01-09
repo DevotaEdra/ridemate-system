@@ -1,87 +1,62 @@
 import os
 import httpx
 
-# Konfigurasi Environment
-VEHICLE_SERVICE_URL = os.getenv("VEHICLE_SERVICE_URL", "https://kenzie-isauxetic-uncruelly.ngrok-free.dev/graphql")
-USERNAME = os.getenv("EXTERNAL_LOGIN_USERNAME", "admin") 
-PASSWORD = os.getenv("EXTERNAL_LOGIN_PASSWORD", "admin123")
+AVAILABILITY_SERVICE_URL = "https://kenzie-isauxetic-uncruelly.ngrok-free.dev/availability/graphql/"
 
-CACHED_TOKEN = None
-
-async def login_to_vehicle_service():
-    global CACHED_TOKEN
-    # Query login sesuai spesifikasi teman Anda (access_token)
-    mutation = """
-    mutation ($username: String!, $password: String!) {
-      login(username: $username, password: $password) {
-        access_token 
-      }
+async def check_availability(vehicle_id: str, date: str) -> bool:
+    """
+    Mengecek ketersediaan kendaraan ke Availability Service Kelompok Lain.
+    Query: checkAvailability(vehicleId, date)
+    Auth: Tidak diperlukan (Public Endpoint)
+    """
+    
+    query = """
+    query ($vehicleId: Int!, $date: String!) {
+      checkAvailability(vehicleId: $vehicleId, date: $date)
     }
     """
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        try:
-            res = await client.post(
-                VEHICLE_SERVICE_URL,
-                json={"query": mutation, "variables": {"username": USERNAME, "password": PASSWORD}}
-            )
-            token = res.json().get("data", {}).get("login", {}).get("access_token")
-            if token: CACHED_TOKEN = token
-            return token
-        except:
-            return None
-
-async def check_availability(vehicle_id: str) -> bool:
-    """
-    Hanya mengecek status fisik mobil.
-    Return True jika status == 'active'.
-    """
-    global CACHED_TOKEN
     
-    # Auto Login Logic
-    if CACHED_TOKEN is None:
-        if await login_to_vehicle_service() is None: return False
+    variables = {
+        "vehicleId": vehicle_id, 
+        "date": date
+    }
 
-    async def send_request(token):
-        # Kita minta 'status' mobil
-        query = """
-        query ($id: ID!) {
-          getVehicleById(id: $id) {
-            id
-            status
-          }
-        }
-        """
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            return await client.post(
-                VEHICLE_SERVICE_URL,
-                json={"query": query, "variables": {"id": vehicle_id}},
-                headers={"Authorization": f"Bearer {token}"}
+    print(f"📡 [FleetClient] Mengecek Availability...")
+    print(f"   URL: {AVAILABILITY_SERVICE_URL}")
+    print(f"   Vehicle ID: {vehicle_id}, Date: {date}")
+
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        try:
+            response = await client.post(
+                AVAILABILITY_SERVICE_URL,
+                json={"query": query, "variables": variables},
+                headers={"Content-Type": "application/json"}
             )
-
-    try:
-        res = await send_request(CACHED_TOKEN)
-    except:
-        return False
-
-    # Refresh Token jika expired (401)
-    if res.status_code in [401, 403]:
-        if await login_to_vehicle_service():
-            res = await send_request(CACHED_TOKEN)
-        else:
-            return False
-
-    if res.status_code == 200:
-        data = res.json()
-        vehicle = data.get("data", {}).get("getVehicleById")
-        
-        if not vehicle: return False # Mobil tidak ditemukan
-        
-        # LOGIKA BARU: Cek apakah status == "active"
-        status = str(vehicle.get("status", "")).lower()
-        
-        print(f"DEBUG: Status Mobil ID {vehicle_id} adalah '{status}'")
-        
-        if status == "active":
-            return True
             
-    return False
+            
+            data = response.json()
+            if "errors" in data:
+                print(f"❌ [FleetClient] Error dr Server Sebelah: {data['errors'][0]['message']}")
+                return False
+
+            raw_response = data.get("data", {}).get("checkAvailability")
+            
+            print(f"🔍 [DEBUG PENTING] Respon Asli: '{raw_response}' (Tipe: {type(raw_response)})")
+            
+            if raw_response is None:
+                return False
+
+            status_str = str(raw_response).upper().strip()
+
+            POSITIVE_ANSWERS = ["AVAILABLE"]
+
+            if status_str in POSITIVE_ANSWERS:
+                print("✅ Kesimpulan: MOBIL TERSEDIA")
+                return True
+            else:
+                print(f"⚠️ Kesimpulan: DITOLAK (Status '{status_str}' tidak ada di daftar whitelist)")
+                return False
+
+        except Exception as e:
+            print(f"❌ Error Koneksi: {e}")
+            return False

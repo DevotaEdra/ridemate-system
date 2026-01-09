@@ -7,7 +7,7 @@ DATABASE_URL = "postgresql://user:password@user-db:5432/db_user"
 
 engine = None
 
-for i in range(10):  # coba 10x
+for i in range(10):  
     try:
         engine = create_engine(DATABASE_URL, pool_pre_ping=True)
         engine.connect()

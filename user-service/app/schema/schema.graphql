@@ -28,4 +28,5 @@ type Query {
 type Mutation {
   register(email: String!, password: String!): User
   login(email: String!, password: String!): Token
+  editUserReputation(userId: ID!, score: Int!, isBlacklisted: Boolean!): Reputation
 }
